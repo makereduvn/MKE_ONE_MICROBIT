@@ -51,8 +51,8 @@ namespace l9110 {
      * @param speed set the rotational speed of the motor
      */
     //% block="Driver \\| Control motor $motor rotation $rotate with speed $speed \\%"
-    //% motor.defl=Motor.MotorA
-    //% rotate.defl=Rotate.Forward
+    //% motor.defl=l9110.Motor.MotorA
+    //% rotate.defl=l9110.Rotate.Forward
     //% speed.defl=50 speed.min=0 speed.max=100
     //% inlineInputMode=inline
     //% weight=2
@@ -94,7 +94,7 @@ namespace l9110 {
      * @param motor choose motor A or motor B
      */
     //% block="Driver \\| Stop motor $motor"
-    //% motor.defl=Motor.MotorA
+    //% motor.defl=l9110.Motor.MotorA
     //% inlineInputMode=inline
     //% weight=1
     export function pauseMotor(motor: Motor) {
@@ -177,8 +177,8 @@ namespace ultraSonic {
      * @param port select 4-pin port
      */
     //% block="S01 UltraSonic Distance \\| Read distance $unit from port $port"
-    //% unit.defl=PingUnit.Centimeters
-    //% port.defl=PinKit.Port1 port.fieldEditor="gridpicker" port.fieldOptions.columns=2
+    //% unit.defl=ultraSonic.PingUnit.Centimeters
+    //% port.defl=ultraSonic.PinKit.Port1 port.fieldEditor="gridpicker" port.fieldOptions.columns=2
     //% inlineInputMode=inline
     export function readDistance(unit: PingUnit, port: PinKit): number {
         /* Port? */
@@ -352,8 +352,8 @@ namespace dht11 {
      * @param unit desired conversion unit
      */
     //% block="S14 Temp&Humi \\| Read temperature in degree $unit from port $sig"
-    //% unit.defl=TemperatureType.Celsius
-    //% sig.defl=PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
+    //% unit.defl=dht11.TemperatureType.Celsius
+    //% sig.defl=dht11.PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
     //% inlineInputMode=inline
     //% weight=2
     export function readTemperature(unit: TemperatureType, sig: PinKit): number {
@@ -369,7 +369,7 @@ namespace dht11 {
      * @param sig signal pin (default P0)
      */
     //% block="S14 Temp&Humi \\| Read air humidity (\\%) from port $sig"
-    //% sig.defl=PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
+    //% sig.defl=dht11.PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
     //% inlineInputMode=inline
     //% weight=1
     export function readHumidity(sig: PinKit): number {
@@ -540,12 +540,20 @@ namespace ds18b20 {
      * @param sig signal pin (default P0)
      */
     //% block="S15 Water Temp \\| Read temperature in degree $unit from port $sig"
-    //% unit.defl=TemperatureType.Celsius
-    //% sig.defl=PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
+    //% unit.defl=ds18b20.TemperatureType.Celsius
+    //% sig.defl=ds18b20.PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
     //% inlineInputMode=inline
     export function readTemperature(sig: PinKit, unit: TemperatureType): number {
         /* Port? */
         let pin;
+        // 1. Ép kiểu sig về số nguyên để chắc chắn nó là index
+        let index = Math.floor(sig);
+
+        // 2. Kiểm tra nếu index nằm ngoài phạm vi mảng
+        if (index < 0 || index > 5) {
+            index = 0; // Hoặc trả về một giá trị lỗi như -999
+        }
+
         switch (sig) {
             case PinKit.P0: pin = DigitalPin.P0; break;
             case PinKit.P1: pin = DigitalPin.P1; break;
@@ -554,6 +562,10 @@ namespace ds18b20 {
             case PinKit.P14: pin = DigitalPin.P14; break;
             case PinKit.P15: pin = DigitalPin.P15; break;
         }
+
+        // 3. Khi truy cập mảng, hãy đảm bảo có giá trị mặc định
+        let lastV = _lastTemp[index];
+        if (lastV === undefined) lastV = 0;
 
         /* Transaction Sequence
         **
@@ -591,11 +603,17 @@ namespace ds18b20 {
         */
         temperature = high << 8 | low;
         temperature = temperature / 16;
-        if (temperature > 130) {
-            temperature = _lastTemp[sig];
-        }
-        _lastTemp[sig] = temperature;
 
+        // if (temperature > 130) {
+        //     temperature = _lastTemp[sig];
+        // }
+        // _lastTemp[sig] = temperature;
+        
+        if (temperature > 130) {
+            temperature = lastV; // Sử dụng giá trị an toàn đã check
+        }
+        _lastTemp[index] = temperature;
+        
         let value;
         
         /* Get value temperature */
@@ -881,7 +899,7 @@ namespace lcd {
      * @param sym is special character you choose
      */
     //% block="Special character $sym"
-    //% sym.defl=Symbols.sym01 sym.fieldEditor="gridpicker" sym.fieldOptions.columns=4
+    //% sym.defl=lcd.Symbols.sym01 sym.fieldEditor="gridpicker" sym.fieldOptions.columns=4
     //% inlineInputMode=inline
     //% weight=2
     //% group="Display"
@@ -1117,7 +1135,7 @@ namespace ds3231 {
      * @param calendar select get data Day, Month or Year
      */
     //% block="M09 Clock I2C \\| Get $calendar in Calendar"
-    //% calendar.defl=Calendar.Day
+    //% calendar.defl=ds3231.Calendar.Day
     //% inlineInputMode=inline
     //% weight=11
     //% group="Get Info Time (Data)"
@@ -1154,7 +1172,7 @@ namespace ds3231 {
      * @param clock select get data Hour, Minute or Second
      */
     //% block="M09 Clock I2C \\| Get $clock in Time now"
-    //% clock.defl=Clock.Hour
+    //% clock.defl=ds3231.Clock.Hour
     //% inlineInputMode=inline
     //% weight=9
     //% group="Get Info Time (Data)"
@@ -1252,7 +1270,7 @@ namespace ds3231 {
      */
     //% block="M09 Clock I2C \\| Set Day $day Month $month Year $year, $hour Hour : $minute Minute : 0 Second"
     //% day.defl=1 day.min=1 day.max=31
-    //% month.defl=Month.Jan
+    //% month.defl=ds3231.Month.Jan
     //% year.defl=2022 year.min=2000 year.max=2099
     //% hour.defl=11 hour.min=0 hour.max=23
     //% minute.defl=30 minute.min=0 minute.max=59
@@ -1339,10 +1357,11 @@ namespace ds3231 {
     //% block="M09 Clock I2C \\| Set Alarm at $hour Hour : $minute Minute $types"
     //% hour.defl=11 hour.min=0 hour.max=23
     //% minute.defl=30 minute.min=0 minute.max=59
-    //% types.defl=Alarm.OneTime
+    //% types.defl=ds3231.Alarm.OneTime
     //% inlineInputMode=inline
     //% weight=3
     //% group="Alarm"
+    //% blockHidden=true
     export function setAlarm_byChoose(hour: number, minute: number, types: Alarm) {
         alarm[0] = hour;
         alarm[1] = minute;
@@ -1356,10 +1375,11 @@ namespace ds3231 {
      */
     //% block="M09 Clock I2C \\| Setting Alarm $ticks $types"
     //% ticks.defl="SA-15:30"
-    //% types.defl=Alarm.OneTime
+    //% types.defl=ds3231.Alarm.OneTime
     //% inlineInputMode=inline
     //% weight=2
     //% group="Alarm"
+    //% blockHidden=true
     export function setAlarm_byCommands(ticks: string, types: Alarm): boolean {
         /**
          * String handling:
@@ -1392,6 +1412,7 @@ namespace ds3231 {
     //% inlineInputMode=inline
     //% weight=1
     //% group="Alarm"
+    //% blockHidden=true
     export function checkAlarm(): boolean {
         if (bcdToDec(regValue(DS3231_REG_HOUR)) == alarm[0]) {
             if (bcdToDec(regValue(DS3231_REG_MINUTE)) == alarm[1]) {
@@ -1867,7 +1888,7 @@ namespace mp3Player {
      * @param chooseEQ select EQ format
      */
     //% block="M11 MP3 Player \\| Set EQ $chooseEQ from port (P2+P8)"
-    //% chooseEQ.defl=EQ.Normal
+    //% chooseEQ.defl=mp3Player.EQ.Normal
     //% inlineInputMode=inline
     //% weight=10
     //% group="Setting"
@@ -1902,7 +1923,7 @@ namespace mp3Player {
      * @param playWhat choose to play next or previous music file
      */
     //% block="M11 MP3 Player \\| Play $playWhat from port (P2+P8)"
-    //% playWhat.defl=PlayWhat.Next
+    //% playWhat.defl=mp3Player.PlayWhat.Next
     //% inlineInputMode=inline
     //% weight=8
     //% group="Control"
@@ -1999,7 +2020,7 @@ namespace mp3Player {
      * @param second set how long you want to play that file
      */
     //% block="M11 MP3 Player \\| Play $playWhat for $second seconds from port (P2+P8)"
-    //% playWhat.defl=PlayWhat.Next
+    //% playWhat.defl=mp3Player.PlayWhat.Next
     //% second.defl=2.5
     //% inlineInputMode=inline
     //% weight=2
@@ -2016,7 +2037,7 @@ namespace mp3Player {
      * @param playWhat choose to play next or previous music file
      */
     //% block="M11 MP3 Player \\| Play $playWhat until done from port (P2+P8)"
-    //% playWhat.defl=PlayWhat.Next
+    //% playWhat.defl=mp3Player.PlayWhat.Next
     //% inlineInputMode=inline
     //% weight=1
     //% group="Advanced Control"
@@ -2556,8 +2577,8 @@ namespace ir1838 {
      * @param sig signal pin (default P0)
      */
     //% block="M14 IR Remote \\| Read $chooseValue NEC from port $sig"
-    //% chooseValue.defl=ValueIR.Command
-    //% sig.defl=PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
+    //% chooseValue.defl=ir1838.ValueIR.Command
+    //% sig.defl=ir1838.PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
     //% inlineInputMode=inline
     //% weight=2
     //% group="Get Info Infrared (Data)"
@@ -2594,7 +2615,7 @@ namespace ir1838 {
      * @param sig signal pin (default P0)
      */
     //% block="M14 IR Remote \\| Print IR NEC result short from $sig port"
-    //% sig.defl=PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
+    //% sig.defl=ir1838.PinKit.P0 sig.fieldEditor="gridpicker" sig.fieldOptions.columns=3
     //% inlineInputMode=inline
     //% weight=1
     //% group="Get Info Infrared (Text)"

@@ -1,12 +1,10 @@
 {
     "name": "MakerEdu_Hardware",
-    "version": "0.0.2",
+    "version": "0.0.4",
     "description": "",
     "dependencies": {
         "core": "*",
-        "microphone": "*",
-        "bluetooth": "*",
-        "devices": "*"
+        "microphone": "*"
     },
     "files": [
         "main.ts",
@@ -19,7 +17,7 @@
         "test.ts"
     ],
     "targetVersions": {
-        "target": "5.0.12",
+        "target": "8.0.21",
         "targetId": "microbit"
     },
     "supportedTargets": [
